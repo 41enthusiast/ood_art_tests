@@ -17,6 +17,11 @@ from collections import defaultdict
 import random
 
 from sklearn.metrics import recall_score, precision_score, f1_score
+from torchmetrics.functional.classification import (
+    binary_auroc,
+    binary_precision_recall_curve,
+    binary_roc
+)
 
 def cosine_annealing(step, total_steps, lr_max, lr_min):
     return lr_min + (lr_max - lr_min) * 0.5 * (
@@ -303,3 +308,19 @@ def get_recall_precision_f1(all_label, all_pred):
                            all_pred.cpu().data.squeeze().numpy(), average='macro')
                            
     return recall, precision, f1
+
+def fpr_at_tpr(pred, target, k=0.95):
+    """
+    Calculate the False Positive Rate at a certain True Positive Rate
+
+    :param pred: outlier scores
+    :param target: target label
+    :param k: cutoff value
+    :return:
+    """
+    # results will be sorted in reverse order
+    fpr, tpr, _ = binary_roc(pred, target)
+    idx = torch.searchsorted(tpr, k)
+    if idx == fpr.shape[0]:
+        return fpr[idx - 1]
+    return fpr[idx]

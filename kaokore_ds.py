@@ -55,35 +55,20 @@ class Kaokore(Dataset):
 
         self.category = verify_str_arg(category, ['gender', 'status'])
 
-        labels = load_labels(os.path.join(root, 'labels.csv'))
+        labels = load_labels(os.path.join(root, 'labels1.csv'))
 
-
-        if label_type == 'unknown':
-          self.entries = [
-            (label_entry['image'], -1)
-            for label_entry in labels
-            if label_entry['set'] == split and os.path.exists(
-                os.path.join(self.root, 'images_256', label_entry['image']))
-          ]
-          self.labels = [
-              -1
-              for label_entry in labels
-              if label_entry['set'] == split and os.path.exists(
-                  os.path.join(self.root, 'images_256', label_entry['image']))
-          ]
-        else:
-          self.entries = [
-            (label_entry['image'], int(label_entry[category]))
-            for label_entry in labels
-            if label_entry['set'] == split and os.path.exists(
-                os.path.join(self.root, 'images_256', label_entry['image']))
-          ]
-          self.labels = [
-              int(label_entry[category])
-              for label_entry in labels
-              if label_entry['set'] == split and os.path.exists(
-                  os.path.join(self.root, 'images_256', label_entry['image']))
-          ]
+        num_classes = 2 if category == 'gender' else 4
+        self.count_dict = {i:0 for i in range(num_classes)}
+        
+        self.entries = []; self.labels = []
+        
+        for label_entry in labels:
+          if label_entry['set'] == split and os.path.exists(
+              os.path.join(self.root, 'images_256', label_entry['image'])):
+            self.entries.append((label_entry['image'], int(label_entry[category])))
+            self.labels.append(int(label_entry[category]))
+            self.count_dict[self.labels[-1]]+=1
+            
 
         self.transform = transform
 
@@ -156,7 +141,9 @@ train_loader_out = DataLoader(train_dataset, batch_size = BSZ)
 train_loader_mini = DataLoader(train_dataset_mini, batch_size = BSZ, shuffle = False)
 test_loader_out = DataLoader(test_dataset, batch_size = BSZ)
 
-for x, xs, y in train_loader_out:
-  break
-for x, y in test_loader_out:
-  break
+if __name__ == '__main__':
+  print(train_dataset.count_dict, test_dataset.count_dict)
+  for x, xs, y in train_loader_out:
+    break
+  for x, y in test_loader_out:
+    break

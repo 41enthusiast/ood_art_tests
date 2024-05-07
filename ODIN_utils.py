@@ -13,7 +13,7 @@ from torchvision.datasets import ImageFolder
 from kaokore_ds import train_dataset
 from pytorch_ood.model import WideResNet
 
-MODEL_TYPE = 'simple_odin'
+MODEL_TYPE = ['stsaclf', 'simple_odin'][1]
 
 class OdinSamplerRB(torch.utils.data.Sampler):
     def __init__(self, model, data_source, batch_size, step_sz, loss, temperature, norm_std, replacement=True):
@@ -146,15 +146,17 @@ class OdinSamplerRB(torch.utils.data.Sampler):
               x.append(self.data_source[idx][0])
               x_s.append(self.data_source[idx][1])
               y.append(self.data_source[idx][2])
+              
 
-            if x == [] or y == []:
-              print(seed_idxs, i)
             x = torch.stack(x).to('cuda')
             x_s = torch.stack(x_s).to('cuda')
             y  = torch.tensor(y).to('cuda')
+            
             probs, scores = self.predict_confidence_probs(x, x_s, y)
             for i in scores:
                 cum_scores_class[i.item()]+= scores[i]
+            print(cum_scores_class)
+            break
 
         for i in cum_scores_class:
             cum_scores_class[i]/= train_egs[i]
@@ -240,6 +242,13 @@ class OdinSamplerRB(torch.utils.data.Sampler):
 
 
 if __name__ == '__main__':
+    #reproducibility
+    # fix_random_seed(42)
+    # np.random.seed(42)
+    # torch.manual_seed(42)
+    # torch.backends.cudnn.benchmark = False
+
+
     step_sz = 0.05
     criterion =  F.nll_loss
     device = 'cuda'
