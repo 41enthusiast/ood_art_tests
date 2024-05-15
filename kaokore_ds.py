@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from pytorch_ood.model import WideResNet
 import torch
 from torchvision import datasets, models, transforms
+import pandas as pd
 
 #from rois-codh code folder code for pytorch
 def verify_str_arg(value, valid_values):
@@ -55,10 +56,10 @@ class Kaokore(Dataset):
 
         self.category = verify_str_arg(category, ['gender', 'status'])
 
-        labels = load_labels(os.path.join(root, 'labels1.csv'))
+        labels = load_labels(os.path.join(root, 'labels.csv'))
 
-        num_classes = 2 if category == 'gender' else 4
-        self.count_dict = {i:0 for i in range(num_classes)}
+        self.num_classes, self.txt_lbls = self.get_metadata(category)
+        self.count_dict = {i:0 for i in range(self.num_classes)}
         
         self.entries = []; self.labels = []
         
@@ -72,6 +73,20 @@ class Kaokore(Dataset):
 
         self.transform = transform
 
+    def get_metadata(self, category):
+      f = open(os.path.join(self.root, 'labels.metadata.en.txt'), 'r')
+      fout = f.read().split('\n\n')
+      keys, vals = fout[0].split('\n')
+      num_classes_map = lambda k,v : (k.split('\t'), v.split('\t'))
+      num_classes = {ki:int(vi) for ki,vi in zip(*num_classes_map(keys, vals))}[category]
+      for txtlbls in fout[1:]:
+        if category in txtlbls:
+          txtlbls = txtlbls.split('\n\t')[1:]
+          txtlbls = {int(i.split('\t')[0]) : i.split('\t')[1] for i in txtlbls}
+          break
+      return num_classes, txtlbls
+          
+    
     def __len__(self):
         return len(self.entries)
 
@@ -93,6 +108,17 @@ class Kaokore(Dataset):
           return image, label
     
 
+# def make_stratified_
+
+def make_kaokore_df(dset: Kaokore):
+  kao_df = []
+  for i in dset.entries:
+    kao_df.append({'image':os.path.join(dset.root, 'images_256', i[0]),
+                   'label':dset.txt_lbls[i[1]]
+                   })
+  return pd.DataFrame(kao_df)
+  
+
 #hyperparameters setup
 split_pct = 0.5
 label_type = 'status'
@@ -105,10 +131,10 @@ else:
   num_classes = 2
 
 # prepare dataset with pretraining dataset statistics
-train_dataset = Kaokore('kaokore/kaokore', 'train', label_type, trans, 'known')
+train_dataset = Kaokore(os.path.join('kaokore','kaokore'), 'train', label_type, trans, 'known')
 train_idx = stratify_split_ds(train_dataset, split_pct)
 train_dl = DataLoader(train_dataset, batch_size = BSZ)
-test_dataset = Kaokore('kaokore/kaokore', 'test', label_type, trans, 'known')
+test_dataset = Kaokore(os.path.join('kaokore','kaokore'), 'test', label_type, trans, 'known')
 test_idx = stratify_split_ds(test_dataset, split_pct)
 test_dl = DataLoader(test_dataset, batch_size = BSZ)
 
@@ -133,9 +159,9 @@ kaokore_transform = transforms.Compose([
     transforms.Normalize(tuple(mean_channels.tolist()), tuple(std_channels.tolist())),
 ])
 
-train_dataset = Kaokore('kaokore/kaokore', 'train', label_type, kaokore_transform1, 'known')
-train_dataset_mini = Kaokore('kaokore/kaokore', 'train', label_type, kaokore_transform, 'known')
-test_dataset = Kaokore('kaokore/kaokore', 'test', label_type, kaokore_transform1, 'known')
+train_dataset = Kaokore(os.path.join('kaokore','kaokore'), 'train', label_type, kaokore_transform1, 'known')
+train_dataset_mini = Kaokore(os.path.join('kaokore','kaokore'), 'train', label_type, kaokore_transform, 'known')
+test_dataset = Kaokore(os.path.join('kaokore','kaokore'), 'test', label_type, kaokore_transform1, 'known')
 
 train_loader_out = DataLoader(train_dataset, batch_size = BSZ)
 train_loader_mini = DataLoader(train_dataset_mini, batch_size = BSZ, shuffle = False)

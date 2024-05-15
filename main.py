@@ -39,7 +39,7 @@ device = 'cuda'
 model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', pretrained=True).to(device)
 
 MODEL_TYPE = ['simple_odin', 'stsaclf', 'contrastive'][1]
-RUN = 8
+RUN = 3
 SAMPLER_TYPE = ['odin', 'stratified', 'random'][0]
 
 if MODEL_TYPE == 'simple_odin':
@@ -53,9 +53,9 @@ elif MODEL_TYPE == 'stsaclf':
 step_sz = 0.05
 criterion = torch.nn.CrossEntropyLoss()
 device = 'cuda'
-batch_sz = 64
+batch_sz = 32
 
-epochs = 30
+epochs = 10
 lr = 1e-4
 momentum = 0.9
 decay = 0.0005

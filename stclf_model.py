@@ -91,7 +91,7 @@ class AttnResNet(nn.Module): #the vgg n densnet versions
                 out = self.dropout(out, self.p, self.training)
 
         out = self.classify(out)
-        return [out,]+ attn_maps
+        return [out,]+ attn_maps + [g,]
     
 
 # old best model
