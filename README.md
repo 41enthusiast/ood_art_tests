@@ -19,6 +19,8 @@ gen_lbl_wise_imagenet_style_dataset.py
 Running the code:
 python main.py
 
+sbatch run_code.sh
+
 Extra repositories used to run the code
 stylize-datasets
 kaokore
