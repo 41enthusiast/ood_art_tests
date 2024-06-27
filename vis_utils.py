@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from kaokore_ds import *
-from sampler_utils import *
+from sampler_utils_vis import *
 import wandb
 
 def class_distro_chart(classes_dict, class_names, file_name):

@@ -322,9 +322,9 @@ batch_sampler = OdinSamplerRB(art_model, dataset, batch_sz,
 batch_sampler.update_local(art_model, temperature)
 
 
-for i, batch_indices in enumerate(batch_sampler):
-    batch_x, batch_xs, batch_y = torch.stack([dataset[idx][0] for idx in batch_indices]), torch.stack([dataset[idx][0] for idx in batch_indices]), torch.tensor([dataset[idx][2] for idx in batch_indices])
-    x,y = batch_x.cuda(), batch_y.cuda()
-    # print(batch_sampler.sampling_probs.mean(), batch_sampler.sampling_probs.std())
-    # print(batch_sampler.count_dict_new)
+# for i, batch_indices in enumerate(batch_sampler):
+#     batch_x, batch_xs, batch_y = torch.stack([dataset[idx][0] for idx in batch_indices]), torch.stack([dataset[idx][0] for idx in batch_indices]), torch.tensor([dataset[idx][2] for idx in batch_indices])
+#     x,y = batch_x.cuda(), batch_y.cuda()
+#     # print(batch_sampler.sampling_probs.mean(), batch_sampler.sampling_probs.std())
+#     # print(batch_sampler.count_dict_new)
 

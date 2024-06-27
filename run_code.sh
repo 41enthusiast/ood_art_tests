@@ -11,8 +11,8 @@
 #SBATCH --mem=16G # Request 16Gb of memory
 #SBATCH --exclude=gpu[0-8]
 
-#SBATCH -o program_output14.txt
-#SBATCH -e whoopsies14.txt
+#SBATCH -o program_output1.txt
+#SBATCH -e whoopsies1.txt
 
 # Load the global bash profile
 source /etc/profile

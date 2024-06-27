@@ -39,8 +39,8 @@ device = 'cuda'
 model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', pretrained=True).to(device)
 
 MODEL_TYPE = ['simple_odin', 'stsaclf', 'contrastive'][1]
-RUN = 15
-SAMPLER_TYPE = ['odin', 'stratified', 'random'][0]
+RUN = 16
+SAMPLER_TYPE = ['stratified', 'random'][0]
 
 if MODEL_TYPE == 'simple_odin':
   art_model = model
@@ -63,9 +63,6 @@ decay = 0.0005
 temperature = 1
 
 dataset = train_dataset
-
-# batch_sampler = OdinSamplerRB(art_model, dataset, batch_sz,
-#               step_sz, F.nll_loss, temperature, norm_std)
 
 optimizer = torch.optim.SGD(
    art_model.parameters(),
@@ -112,11 +109,8 @@ loss_avg = 0.0
 temps = []
 for epoch in range(epochs):
   art_model.train()
-  for i, batch_indices in enumerate(batch_sampler):
-    batch_x, batch_xs, batch_y = torch.stack([dataset[idx][0] for idx in batch_indices]), torch.stack([dataset[idx][0] for idx in batch_indices]), torch.tensor([dataset[idx][2] for idx in batch_indices])
-    x,y = batch_x.cuda(), batch_y.cuda()
-  # for x, xs, y in train_loader_ws:
-  #   x, xs, y = x.to(device), xs.to(device), y.to(device)
+  for x, xs, y in train_loader_ws:
+    x, xs, y = x.to(device), xs.to(device), y.to(device)
     if MODEL_TYPE == 'simple_odin':
       out = art_model(x)
     elif MODEL_TYPE == 'stsaclf':
@@ -193,23 +187,8 @@ for epoch in range(epochs):
 
   print('Saving model and sampling weights')
   torch.save(art_model.state_dict(), f'saves/model_{MODEL_TYPE}_{SAMPLER_TYPE}_{epoch}.pth')
-   
-  
-
-  if SAMPLER_TYPE == 'odin':
-    
-    
-    torch.save( batch_sampler.train_sampling_probs, f'saves/sampler_{SAMPLER_TYPE}_{AUG_MODE}_{AGGR_MODE}_{epoch}.pt')
-    
-    # visualization of results
-    
-    if epoch %5 == 0:
-      temperature *= 5
-      batch_sampler.update_local(art_model, temperature)
-      # batch_sampler.temperature = cosine_annealing(epoch, len(train_dataset)//batch_sz, 0, 1000)
-      temps.append(temperature)
 
 print('train_loss', loss_avg)
 
-print(MODEL_TYPE, 'ODIN sampling', 'macro avg')
+print(MODEL_TYPE, 'Random sampling', 'macro avg')
 print(temps)
